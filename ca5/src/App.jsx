@@ -1,7 +1,13 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Header from './Header';
+import BookList from './BookList';
+import RegisterForm from './RegisterForm';
 
 function App() {
+
+  // state inisiale
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,22 +20,26 @@ function App() {
   const [formErrors, setFormErrors] = useState({});
   const [registered, setRegistered] = useState(false);
 
+  // fetching the api data
   useEffect(() => {
     axios.get('https://reactnd-books-api.udacity.com/books', {
       headers: { 'Authorization': 'whatever-you-want' }
     })
-    .then(response => {
-      setBooks(response.data.books);
-      setFilteredBooks(response.data.books);
-    })
-    .catch(error => {
-      console.error('Error fetching books:', error);
-    });
+      .then(response => {
+        setBooks(response.data.books);
+        setFilteredBooks(response.data.books);
+      })
+      .catch(error => {
+        console.error('Error fetching books:', error);
+      });
   }, []);
 
+  // search function
   const handleSearch = (e) => {
     const searchTerm = e.target.value;
     setSearchTerm(searchTerm);
+
+    // filtre data value
     const filtered = books.filter(book =>
       book.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -44,6 +54,7 @@ function App() {
     });
   }
 
+  // to check the form
   const validateForm = () => {
     let errors = {};
     if (formData.name.length < 3 || formData.name.length > 30) {
@@ -61,6 +72,7 @@ function App() {
     return errors;
   }
 
+  
   const handleRegister = () => {
     const errors = validateForm();
     if (Object.keys(errors).length === 0) {
@@ -80,67 +92,16 @@ function App() {
 
   return (
     <div>
-      <header>
-        <h1 className='heading'>Kalvium Books</h1>
-        {registered ? (
-          <input
-            className='search_bar'
-            type="text"
-            placeholder="Search books..."
-            value={searchTerm}
-            onChange={handleSearch}
-          />
-        )  : null}
-      </header>
+      <Header registered={registered} searchTerm={searchTerm} handleSearch={handleSearch} />
       {registered ? (
-        <div className="book_list">
-          {filteredBooks.map(book => (
-            <div key={book.id} className="book">
-              <img src={book.imageLinks.thumbnail} alt={book.title} />
-              <div>
-              <h2>{book.title}</h2>
-              <p>{book.authors.join(', ')}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <BookList books={books} filteredBooks={filteredBooks} />
       ) : (
-        <div className="register-form">
-          <h2>Sign Up</h2>
-          <input
-            type="text"
-            name="name"
-            placeholder="Name"
-            value={formData.name}
-            onChange={handleInputChange}
-          />
-          {formErrors.name && <p className="error">{formErrors.name}</p>}
-          <input
-            type="text"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleInputChange}
-          />
-          {formErrors.email && <p className="error">{formErrors.email}</p>}
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleInputChange}
-          />
-          {formErrors.password && <p className="error">{formErrors.password}</p>}
-          <input
-            type="password"
-            name="repeatPassword"
-            placeholder="Repeat password"
-            value={formData.repeatPassword}
-            onChange={handleInputChange}
-          />
-          {formErrors.repeatPassword && <p className="error">{formErrors.repeatPassword}</p>}
-          <button onClick={handleRegister}>Sign Up</button>
-        </div>
+        <RegisterForm
+          formData={formData}
+          formErrors={formErrors}
+          handleInputChange={handleInputChange}
+          handleRegister={handleRegister}
+        />
       )}
     </div>
   );
